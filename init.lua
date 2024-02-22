@@ -91,7 +91,7 @@ vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
 -- Set to true if you have a Nerd Font installed and selected in the terminal
-vim.g.have_nerd_font = false
+vim.g.have_nerd_font = true
 
 -- [[ Setting options ]]
 -- See `:help vim.opt`
@@ -228,7 +228,8 @@ vim.opt.rtp:prepend(lazypath)
 -- NOTE: Here is where you install your plugins.
 require('lazy').setup({
   -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
-  'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
+  -- 'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
+  'adaliaramon/copilot.vim',
 
   -- NOTE: Plugins can also be added by using a table,
   -- with the first argument being the link and the following
@@ -851,6 +852,14 @@ require('lazy').setup({
       -- Load the colorscheme here.
       -- Like many other themes, this one has different styles, and you could load
       -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
+      require('tokyonight').setup {
+        style = 'storm',
+        transparent = true,
+        styles = {
+          comments = { italic = false },
+          keywords = { italic = false },
+        },
+      }
       vim.cmd.colorscheme 'tokyonight-night'
 
       -- You can configure highlights by doing something like:
@@ -859,7 +868,7 @@ require('lazy').setup({
   },
 
   -- Highlight todo, notes, etc in comments
-  { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
+  { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = true } },
 
   { -- Collection of various small independent plugins/modules
     'echasnovski/mini.nvim',
@@ -877,7 +886,7 @@ require('lazy').setup({
       -- - saiw) - [S]urround [A]dd [I]nner [W]ord [)]Paren
       -- - sd'   - [S]urround [D]elete [']quotes
       -- - sr)'  - [S]urround [R]eplace [)] [']
-      require('mini.surround').setup()
+      -- require('mini.surround').setup()
 
       -- Simple and easy statusline.
       --  You could remove this setup call if you don't like it,
@@ -913,6 +922,7 @@ require('lazy').setup({
         --  If you are experiencing weird indenting issues, add the language to
         --  the list of additional_vim_regex_highlighting and disabled languages for indent.
         additional_vim_regex_highlighting = { 'ruby' },
+        disable = { 'latex', 'tex', 'markdown' },
       },
       indent = { enable = true, disable = { 'ruby' } },
     },
@@ -974,3 +984,83 @@ require('lazy').setup({
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
+
+-- NOTE: You should make sure your terminal supports this
+vim.o.termguicolors = true
+
+-- Disable the swap file
+vim.o.swapfile = false
+
+-- Add spell-checking
+vim.o.spell = true
+
+-- Automatically break lines that longer than 88 characters
+vim.o.textwidth = 88
+
+-- Modify how to command auto-completion works
+vim.o.wildmode = 'longest,list,full'
+
+-- Change the default tabstop
+vim.o.tabstop = 4
+
+-- Highlight redundant whitespace
+vim.cmd [[highlight TrailingWhitespace ctermbg=red guibg=red]]
+vim.cmd [[match TrailingWhitespace /\s\+$/]]
+
+-- Build/Run function
+local builders = {
+  rust = 'cargo build',
+  python = 'python %',
+  rmd = 'echo "rmarkdown::render(\'%\')" | R --vanilla',
+  markdown = 'pandoc % -o %:r.pdf',
+  -- tex = 'pdflatex %',
+  tex = 'latexmk -pdf %',
+}
+vim.api.nvim_create_user_command('Build', function()
+  vim.fn.execute 'write'
+  local filetype = vim.bo.filetype
+  local builder = builders[filetype]
+  if builder then
+    vim.cmd('!' .. builder)
+  else
+    print('No build command for filetype ' .. filetype)
+  end
+end, { desc = 'Build/Run current buffer' })
+vim.api.nvim_set_keymap('n', '<leader>b', ':Build<CR>', { noremap = true, silent = true, desc = 'Build/Run current buffer' })
+
+-- Open function
+local openers = {
+  rust = 'cargo run',
+  rmd = 'zathura %:r.pdf',
+  tex = 'zathura %:r.pdf',
+  markdown = 'zathura %:r.pdf',
+}
+vim.api.nvim_create_user_command('Open', function()
+  vim.fn.execute 'write'
+  local filetype = vim.bo.filetype
+  local opener = openers[filetype]
+  if opener then
+    vim.cmd('!' .. opener)
+  else
+    print('No open command for filetype ' .. filetype)
+  end
+end, { desc = 'Open current buffer' })
+vim.api.nvim_set_keymap('n', '<leader>o', ':Open<CR>', { noremap = true, silent = true, desc = 'Open current buffer' })
+
+-- Formatting function
+local formatters = {
+  python = { 'reorder-python-imports %', 'pyupgrade %', 'black -C %' },
+  rust = { 'cargo clippy --fix --allow-dirty', 'cargo fmt' },
+}
+vim.api.nvim_create_user_command('Format', function()
+  vim.fn.execute 'write'
+  local filetype = vim.bo.filetype
+  if formatters[filetype] then
+    for _, formatter in ipairs(formatters[filetype]) do
+      vim.fn.execute('silent !' .. formatter)
+    end
+  else
+    print('No formatter for filetype ' .. filetype)
+  end
+end, { desc = 'Format current buffer' })
+vim.api.nvim_set_keymap('n', '<leader>f', ':Format<CR>', { noremap = true, silent = true, desc = 'Format current buffer' })
