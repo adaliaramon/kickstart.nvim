@@ -933,6 +933,20 @@ require('lazy').setup({
     --    - Show your current context: https://github.com/nvim-treesitter/nvim-treesitter-context
     --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
   },
+  {
+    'emmanueltouzery/decisive.nvim',
+    config = function()
+      require('decisive').setup {}
+    end,
+    lazy = true,
+    ft = { 'csv' },
+    keys = {
+      { '<leader>cca', ":lua require('decisive').align_csv({})<cr>", { silent = true }, desc = 'Align CSV', mode = 'n' },
+      { '<leader>ccA', ":lua require('decisive').align_csv_clear({})<cr>", { silent = true }, desc = 'Align CSV clear', mode = 'n' },
+      { '[c', ":lua require('decisive').align_csv_prev_col()<cr>", { silent = true }, desc = 'Align CSV prev col', mode = 'n' },
+      { ']c', ":lua require('decisive').align_csv_next_col()<cr>", { silent = true }, desc = 'Align CSV next col', mode = 'n' },
+    },
+  },
 
   -- The following comments only work if you have downloaded the kickstart repo, not just copy pasted the
   -- init.lua. If you want these files, they are in the repository, so you can just download them and
