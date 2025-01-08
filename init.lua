@@ -231,6 +231,20 @@ require('lazy').setup({
   -- 'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
   -- 'adaliaramon/copilot.vim',
   'Exafunction/codeium.vim',
+  {
+    'stevearc/oil.nvim',
+    ---@module 'oil'
+    ---@type oil.SetupOpts
+    opts = {
+      view_options = {
+        -- Show files and directories that start with "."
+        show_hidden = true,
+      },
+    },
+    -- Optional dependencies
+    dependencies = { { 'echasnovski/mini.icons', opts = {} } },
+    -- dependencies = { "nvim-tree/nvim-web-devicons" }, -- use if prefer nvim-web-devicons
+  },
 
   -- NOTE: Plugins can also be added by using a table,
   -- with the first argument being the link and the following
@@ -1030,6 +1044,8 @@ local builders = {
   markdown = 'pandoc % -o %:r.pdf',
   -- tex = 'pdflatex %',
   tex = 'latexmk -pdf %',
+  zig = 'zig build',
+  lua = 'lua %',
 }
 vim.api.nvim_create_user_command('Build', function()
   vim.fn.execute 'write'
@@ -1049,6 +1065,8 @@ local openers = {
   rmd = 'zathura %:r.pdf',
   tex = 'zathura %:r.pdf',
   markdown = 'zathura %:r.pdf',
+  zig = 'zig build run',
+  lua = 'lua %',
 }
 vim.api.nvim_create_user_command('Open', function()
   vim.fn.execute 'write'
@@ -1079,3 +1097,5 @@ vim.api.nvim_create_user_command('Format', function()
   end
 end, { desc = 'Format current buffer' })
 vim.api.nvim_set_keymap('n', '<leader>f', ':Format<CR>', { noremap = true, silent = true, desc = 'Format current buffer' })
+
+vim.keymap.set('n', '-', '<CMD>Oil<CR>', { desc = 'Open parent directory' })
